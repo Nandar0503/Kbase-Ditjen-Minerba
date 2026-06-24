@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kbase CMS — Knowledge Management System</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary: #f8fafc;
+    --accent: #0ea5e9;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height:1.5; overflow:hidden; }
+  a { color: var(--primary); text-decoration:none; }
+  button { cursor:pointer; font-family:inherit; border:none; background:none; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:14px; font-weight:500; transition:all .2s; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-dark); }
+  .btn-success { background:var(--success); color:#fff; }
+  .btn-success:hover { filter:brightness(0.95); }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { filter:brightness(0.95); }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { background:var(--secondary); }
+  .btn-sm { padding:6px 12px; font-size:13px; }
+  .badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+  .badge-blue { background:#dbeafe; color:#1e40af; }
+  .badge-green { background:#dcfce7; color:#166534; }
+  .badge-orange { background:#ffedd5; color:#9a3412; }
+  .badge-red { background:#fee2e2; color:#991b1b; }
+  .container { display:flex; height:100vh; }
+  .sidebar { width:260px; background:var(--card); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; }
+  .sidebar-header { padding:20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+  .sidebar-header .logo { width:36px; height:36px; background:var(--primary); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:18px; }
+  .sidebar-header h1 { font-size:16px; font-weight:700; }
+  .sidebar-header span { font-size:12px; color:var(--text-light); }
+  .nav { padding:12px; flex:1; overflow-y:auto; }
+  .nav-group { margin-bottom:16px; }
+  .nav-title { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); font-weight:600; padding:0 8px; margin-bottom:6px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; font-size:14px; color:var(--text); cursor:pointer; transition:background .2s; margin-bottom:2px; }
+  .nav-item:hover { background:var(--secondary); }
+  .nav-item.active { background:#eff6ff; color:var(--primary); font-weight:600; }
+  .nav-icon { width:20px; height:20px; display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .header { height:60px; background:var(--card); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; flex-shrink:0; }
+  .search-box { position:relative; width:320px; }
+  .search-box input { width:100%; padding:8px 12px 8px 36px; border:1px solid var(--border); border-radius:8px; font-size:14px; outline:none; transition:border .2s; }
+  .search-box input:focus { border-color:var(--primary); }
+  .search-box svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-light); }
+  .header-actions { display:flex; align-items:center; gap:12px; }
+  .content { flex:1; overflow-y:auto; padding:24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--shadow); }
+  .card + .card { margin-top:20px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:var(--shadow); }
+  .stat-label { font-size:12px; color:var(--text-light); margin-bottom:4px; }
+  .stat-value { font-size:24px; font-weight:700; }
+  .section-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; }
+  .empty-state { text-align:center; padding:40px; color:var(--text-light); }
+  .empty-state svg { margin-bottom:12px; opacity:.5; }
+  .article-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:16px; }
+  .article-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; transition:box-shadow .2s, transform .2s; }
+  .article-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .article-card .badge { margin-bottom:8px; }
+  .article-card h3 { font-size:15px; font-weight:600; margin-bottom:6px; line-height:1.3; }
+  .article-card p { font-size:13px; color:var(--text-light); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .article-card .meta { margin-top:10px; font-size:12px; color:var(--text-light); display:flex; gap:12px; }
+  .faq-item { border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; background:var(--card); }
+  .faq-question { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; font-weight:500; font-size:14px; transition:background .2s; }
+  .faq-question:hover { background:var(--secondary); }
+  .faq-answer { padding:0 16px; font-size:14px; color:var(--text-light); max-height:0; overflow:hidden; transition:max-height .3s ease, padding .3s ease; }
+  .faq-item.open .faq-answer { padding:0 16px 16px; max-height:500px; }
+  .faq-item svg { transition:transform .3s; }
+  .faq-item.open svg { transform:rotate(180deg); }
+  .page-detail .breadcrumb { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-light); margin-bottom:16px; }
+  .page-detail .breadcrumb a:hover { text-decoration:underline; }
+  .page-detail h2 { font-size:22px; font-weight:700; margin-bottom:12px; }
+  .page-detail .meta { display:flex; gap:16px; font-size:13px; color:var(--text-light); margin-bottom:20px; }
+  .page-detail .body { font-size:15px; line-height:1.7; color:var(--text); }
+  .page-detail .body h3 { font-size:18px; font-weight:600; margin:24px 0 10px; }
+  .page-detail .body p { margin-bottom:12px; }
+  .page-detail .body ul { margin:10px 0 10px 20px; }
+  .page-detail .body li { margin-bottom:6px; }
+  .page-detail .body code { background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:13px; font-family:monospace; }
+  .page-detail .body pre { background:#1e293b; color:#e2e8f0; padding:16px; border-radius:10px; overflow-x:auto; font-size:13px; margin:12px 0; }
+  .page-detail .body blockquote { border-left:4px solid var(--primary); padding-left:16px; color:var(--text-light); font-style:italic; margin:12px 0; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); }
+  th { font-weight:600; color:var(--text-light); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; background:var(--secondary); }
+  tr:hover td { background:var(--secondary); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal-overlay.active { display:flex; }
+  .modal { background:var(--card); border-radius:12px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-md); }
+  .modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-header h3 { font-size:16px; font-weight:700; }
+  .modal-body { padding:20px; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+  .form-group input, .form-group textarea, .form-group select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; outline:none; transition:border .2s; font-family:inherit; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:var(--primary); }
+  .form-group textarea { min-height:120px; resize:vertical; }
+  .form-group small { color:var(--text-light); font-size:12px; }
+  .modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+  .login-box { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:40px; width:100%; max-width:400px; box-shadow:var(--shadow-md); text-align:center; }
+  .login-box h2 { margin-bottom:8px; }
+  .login-box p { color:var(--text-light); margin-bottom:24px; font-size:14px; }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; box-shadow:var(--shadow-md); transform:translateY(80px); opacity:0; transition:all .3s; z-index:200; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.success { background:var(--success); }
+  .toast.error { background:var(--danger); }
+  .toast.warning { background:var(--warning); color:#000; }
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .tab { padding:8px 14px; font-size:14px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; color:var(--text-light); }
+  .tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+  .hidden { display:none !important; }
+  .flex { display:flex; }
+  .items-center { align-items:center; }
+  .gap-2 { gap:8px; }
+  .mt-4 { margin-top:16px; }
+  .text-light { color:var(--text-light); }
+  .text-sm { font-size:13px; }
+  .highlight { background:#fef08a; padding:0 2px; border-radius:2px; }
+  @media (max-width:900px) {
+    .sidebar { width:200px; }
+    .grid-4 { grid-template-columns:repeat(2,1fr); }
+    .search-box { width:200px; }
+  }
+  @media (max-width:640px) {
+    .sidebar { display:none; }
+    .grid-4 { grid-template-columns:1fr; }
+    .article-list { grid-template-columns:1fr; }
+    .header { padding:0 12px; }
+    .content { padding:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">K</div>
+      <div><h1>Kbase</h1><span>Knowledge Base</span></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-title">Menu</div>
+        <div class="nav-item active" onclick="go('home')" data-page="home">
+          <span class="nav-icon">🏠</span> Beranda
+        </div>
+        <div class="nav-item" onclick="go('articles')" data-page="articles">
+          <span class="nav-icon">📚</span> Artikel
+        </div>
+        <div class="nav-item" onclick="go('faq')" data-page="faq">
+          <span class="nav-icon">❓</span> FAQ
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-title">Admin</div>
+        <div class="nav-item" onclick="go('admin')" data-page="admin">
+          <span class="nav-icon">⚙️</span> Panel Admin
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-title">Bantuan</div>
+        <div class="nav-item" onclick="go('settings')" data-page="settings">
+          <span class="nav-icon">🔧</span> Pengaturan
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" id="searchInput" placeholder="Cari artikel atau FAQ..." oninput="handleSearch(this.value)">
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" onclick="exportData()">📥 Export</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📤 Import</button>
+        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(this)">
+      </div>
+    </header>
+
+    <div class="content" id="content">
+      <!-- Content rendered by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- Modal Article -->
+<div class="modal-overlay" id="articleModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="articleModalTitle">Artikel Baru</h3><button onclick="closeModal('articleModal')" style="font-size:20px;line-height:1;">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="articleId">
+      <div class="form-group"><label>Judul</label><input type="text" id="articleTitle" placeholder="Judul artikel"></div>
+      <div class="form-group"><label>Kategori</label>
+        <select id="articleCategory"><option>Onboarding</option><option>API</option><option>Keamanan</option><option>Panduan</option><option>Troubleshooting</option><option>Lainnya</option></select>
+      </div>
+      <div class="form-group"><label>Konten</label><textarea id="articleBody" placeholder="Isi artikel (HTML atau teks biasa)...
+
+Tips: Gunakan tag <h3> untuk judul bagian, <ul><li> untuk list, <code> untuk kode inline, dan <pre><code> untuk blok kode."></textarea><small>Markdown tidak aktif. Gunakan HTML sederhana atau teks biasa.</small></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('articleModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveArticle()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal FAQ -->
+<div class="modal-overlay" id="faqModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="faqModalTitle">FAQ Baru</h3><button onclick="closeModal('faqModal')" style="font-size:20px;line-height:1;">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="faqId">
+      <div class="form-group"><label>Pertanyaan</label><input type="text" id="faqQuestion" placeholder="Pertanyaan"></div>
+      <div class="form-group"><label>Kategori</label>
+        <select id="faqCategory"><option>Umum</option><option>Keamanan</option><option>Billing</option><option>Integrasi</option><option>Lainnya</option></select>
+      </div>
+      <div class="form-group"><label>Jawaban</label><textarea id="faqAnswer" placeholder="Jawaban FAQ..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('faqModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveFAQ()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+    <div class="login-box">
+      <div class="logo" style="margin:0 auto 16px;">🔐</div>
+      <h2>Panel Admin</h2>
+      <p>Masukkan password untuk mengelola konten</p>
+      <div class="form-group"><input type="password" id="adminPassword" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">Masuk</button>
+      <p class="text-sm text-light mt-4">Password default: <strong>admin</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ STATE ============
+let state = {
+  page: 'home',
+  search: '',
+  isAdmin: false,
+  adminPass: 'admin',
+  data: { articles: [], faqs: [], categories: [] }
+};
+
+const defaultData = {
+  articles: [
+    { id:1, title:"Panduan Onboarding Pengguna Baru", category:"Onboarding", body:"<p>Selamat datang di platform kami! Berikut langkah-langkah untuk memulai:</p><h3>1. Verifikasi Akun</h3><p>Setelah mendaftar, cek email Anda dan klik tautan verifikasi untuk mengaktifkan akun.</p><h3>2. Lengkapi Profil</h3><p>Masuk ke pengaturan akun untuk menambahkan foto profil dan informasi tim.</p><h3>3. Ikuti Tour</h3><p>Klik tombol <strong>Mulai Tour</strong> di dashboard untuk mengenal fitur utama.</p>", author:"Tim Support", date:"2026-06-15", views:1240 },
+    { id:2, title:"Dokumentasi API v2.0", category:"API", body:"<p>API versi 2.0 mendukung RESTful endpoints dengan autentikasi Bearer Token.</p><h3>Base URL</h3><pre><code>https://api.contoh.com/v2</code></pre><h3>Autentikasi</h3><p>Sertakan header berikut:</p><pre><code>Authorization: Bearer YOUR_TOKEN</code></pre><h3>Endpoint Utama</h3><ul><li><code>GET /users</code> — Daftar pengguna</li><li><code>POST /projects</code> — Buat proyek baru</li><li><code>GET /projects/:id</code> — Detail proyek</li></ul><p>Rate limit: 1000 requests/jam.</p>", author:"Tim Engineering", date:"2026-06-18", views:892 },
+    { id:3, title:"Kebijakan Keamanan & Privasi", category:"Keamanan", body:"<p>Kami mengutamakan keamanan data pengguna dengan standar industri.</p><h3>Enkripsi Data</h3><p>Semua data dalam transit dilindungi dengan TLS 1.3. Data sensitif di database dienkripsi menggunakan AES-256.</p><h3>Akses Berbasis Peran</h3><p>Admin dapat mengatur izin tim dengan presisi tinggi — siapa yang boleh membaca, menulis, atau menghapus.</p><h3>Audit Log</h3><p>Setiap aktivitas penting dicatat dalam log audit yang dapat diakses pemilik akun.</p>", author:"Tim Compliance", date:"2026-06-10", views:756 },
+    { id:4, title:"Cara Integrasi dengan Slack", category:"Panduan", body:"<p>Integrasi Slack memungkinkan notifikasi real-time masuk ke channel tim Anda.</p><h3>Langkah-langkah</h3><ul><li>Buka <strong>Pengaturan → Integrasi</strong></li><li>Klik <strong>Tambah Slack</strong></li><li>Autentikasi dengan akun Slack workspace Anda</li><li>Pilih channel yang diinginkan</li><li>Simpan</li></ul><p>Selesai! Sekarang setiap update penting akan muncul di Slack.</p>", author:"Tim Product", date:"2026-06-20", views:543 },
+    { id:5, title:"Troubleshooting: Gagal Login", category:"Troubleshooting", body:"<p>Jika Anda mengalami masalah saat login, coba langkah berikut:</p><ol><li>Pastikan email dan password benar (perhatikan huruf besar/kecil).</li><li>Reset password melalui tautan <strong>Lupa Password</strong>.</li><li>Clear cache dan cookie browser, lalu coba lagi.</li><li>Nonaktifkan ekstensi browser yang mungkin memblokir.</li><li>Jika masih gagal, hubungi support dengan screenshot error.</li></ol>", author:"Tim Support", date:"2026-06-22", views:1102 },
+    { id:6, title:"Setup Webhook untuk Notifikasi", category:"API", body:"<p>Webhook memungkinkan sistem Anda menerima notifikasi secara otomatis.</p><h3>Konfigurasi</h3><pre><code>POST /webhooks
+{ \"url\": \"https://app.com/webhook\", \"events\": [\"project.created\", \"task.completed\"] }</code></pre><p>Kami akan mengirimkan payload JSON ke URL tersebut setiap event terjadi.</p><h3>Verifikasi</h3><p>Gunakan header <code>X-Signature</code> untuk memverifikasi bahwa payload berasal dari kami.</p>", author:"Tim Engineering", date:"2026-06-19", views:430 }
+  ],
+  faqs: [
+    { id:1, question:"Apakah platform ini gratis?", category:"Umum", answer:"Ya, kami menyediakan paket gratis dengan fitur dasar. Paket berbayar tersedia untuk tim yang membutuhkan fitur tambahan seperti SSO, audit log, dan prioritas support." },
+    { id:2, question:"Bagaimana cara mengimpor data dari spreadsheet?", category:"Umum", answer:"Masuk ke menu Pengaturan > Impor Data. Kami mendukung format CSV dan XLSX. Pastikan kolom header sesuai dengan template yang tersedia." },
+    { id:3, question:"Siapa yang bisa melihat data saya?", category:"Keamanan", answer:"Hanya Anda dan anggota tim yang Anda undang. Data tidak dijual ke pihak ketiga. Semua akses dienkripsi dan diaudit." },
+    { id:4, question:"Apakah tersedia aplikasi mobile?", category:"Umum", answer:"Saat ini tersedia untuk iOS dan Android. Unduh dari App Store atau Google Play dengan kata kunci 'Kbase'." },
+    { id:5, question:"Bagaimana cara mengubah paket berlangganan?", category:"Billing", answer:"Masuk ke Pengaturan > Billing. Pilih paket baru dan ikuti instruksi pembayaran. Perubahan akan aktif segera setelah pembayaran dikonfirmasi." },
+    { id:6, question:"Apakah mendukung SSO/SAML?", category:"Integrasi", answer:"Ya, paket Enterprise mendukung SSO via SAML 2.0 dan OIDC. Hubungi tim support untuk konfigurasi." }
+  ],
+  categories: ["Onboarding","API","Keamanan","Panduan","Troubleshooting","Umum"]
+};
+
+// ============ INIT ============
+function init() {
+  const saved = localStorage.getItem('kbase_data');
+  const savedPass = localStorage.getItem('kbase_pass');
+  if (saved) {
+    try { state.data = JSON.parse(saved); } catch(e) {}
+  } else {
+    state.data = JSON.parse(JSON.stringify(defaultData));
+  }
+  if (savedPass) state.adminPass = savedPass;
+  render();
+}
+
+function persist() {
+  localStorage.setItem('kbase_data', JSON.stringify(state.data));
+}
+
+// ============ NAVIGATION ============
+function go(page, param) {
+  state.page = page;
+  state.param = param;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const nav = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (nav) nav.classList.add('active');
+  render();
+}
+
+function render() {
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  if (state.page === 'home') renderHome(c);
+  else if (state.page === 'articles') renderArticles(c);
+  else if (state.page === 'faq') renderFAQ(c);
+  else if (state.page === 'article') renderArticleDetail(c, state.param);
+  else if (state.page === 'admin') renderAdmin(c);
+  else if (state.page === 'settings') renderSettings(c);
+  else if (state.page === 'search') renderSearch(c);
+}
+
+// ============ HOME ============
+function renderHome(c) {
+  const articles = state.data.articles.slice(0,4);
+  const faqs = state.data.faqs.slice(0,3);
+  const totalViews = state.data.articles.reduce((a,b)=>a+(b.views||0),0);
+  c.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <h2 style="font-size:24px;font-weight:700;">Selamat Datang di Kbase 👋</h2>
+      <p style="color:var(--text-light);margin-top:6px;">Temukan panduan, dokumentasi, dan jawaban atas pertanyaan umum di sini.</p>
+    </div>
+    <div class="grid-4">
+      <div class="stat-card"><div class="stat-label">Total Artikel</div><div class="stat-value" style="color:var(--primary);">${state.data.articles.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total FAQ</div><div class="stat-value" style="color:var(--success);">${state.data.faqs.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Kategori</div><div class="stat-value" style="color:var(--accent);">${state.data.categories.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Views</div><div class="stat-value" style="color:var(--warning);">${totalViews.toLocaleString()}</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Artikel Populer <a href="#" onclick="go('articles')">Lihat Semua →</a></div>
+      <div class="article-list">${articles.map(a=>articleCard(a)).join('')}</div>
+    </div>
+    <div class="card">
+      <div class="section-title">FAQ Terbaru <a href="#" onclick="go('faq')">Lihat Semua →</a></div>
+      ${faqs.length?faqs.map(f=>faqItem(f)).join(''):'<div class="empty-state">Belum ada FAQ</div>'}
+    </div>`;
+  attachFAQEvents();
+}
+
+function articleCard(a) {
+  return `<div class="article-card" onclick="go('article',${a.id})">
+    <span class="badge badge-blue">${escapeHtml(a.category)}</span>
+    <h3>${escapeHtml(a.title)}</h3>
+    <p>${stripHtml(a.body).substring(0,120)}...</p>
+    <div class="meta"><span>👤 ${escapeHtml(a.author||'Admin')}</span><span>📅 ${a.date}</span><span>👁 ${a.views||0}</span></div>
+  </div>`;
+}
+
+function faqItem(f) {
+  return `<div class="faq-item" data-id="${f.id}">
+    <div class="faq-question" onclick="toggleFAQ(this)">
+      <span>${escapeHtml(f.question)}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="faq-answer">${escapeHtml(f.answer).replace(/\n/g,'<br>')}</div>
+  </div>`;
+}
+
+function toggleFAQ(el) {
+  el.parentElement.classList.toggle('open');
+}
+
+function attachFAQEvents() {
+  // handled inline onclick
+}
+
+// ============ ARTICLES ============
+function renderArticles(c) {
+  const items = filterItems(state.data.articles, state.search, ['title','body','category']);
+  c.innerHTML = `
+    <div class="section-title">Semua Artikel
+      ${state.isAdmin?`<button class="btn btn-primary btn-sm" onclick="openArticleModal()">+ Artikel Baru</button>`:''}
+    </div>
+    ${items.length?`<div class="article-list">${items.map(a=>articleCard(a)).join('')}</div>`:'<div class="empty-state">Tidak ada artikel ditemukan</div>'}`;
+}
+
+// ============ ARTICLE DETAIL ============
+function renderArticleDetail(c, id) {
+  const a = state.data.articles.find(x=>x.id===id);
+  if (!a) return go('articles');
+  a.views = (a.views||0)+1; persist();
+  c.innerHTML = `
+    <div class="page-detail">
+      <div class="breadcrumb"><a href="#" onclick="go('home')">Beranda</a><span>/</span><a href="#" onclick="go('articles')">Artikel</a><span>/</span><span>${escapeHtml(a.title)}</span></div>
+      <h2>${escapeHtml(a.title)}</h2>
+      <div class="meta">
+        <span class="badge badge-blue">${escapeHtml(a.category)}</span>
+        <span>👤 ${escapeHtml(a.author||'Admin')}</span>
+        <span>📅 ${a.date}</span>
+        <span>👁 ${a.views||0} kali dilihat</span>
+      </div>
+      <div class="body">${a.body}</div>
+      ${state.isAdmin?`<div class="mt-4" style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="editArticle(${a.id})">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="deleteArticle(${a.id})">🗑 Hapus</button></div>`:''}
+    </div>`;
+}
+
+// ============ FAQ ============
+function renderFAQ(c) {
+  const items = filterItems(state.data.faqs, state.search, ['question','answer','category']);
+  c.innerHTML = `
+    <div class="section-title">Frequently Asked Questions
+      ${state.isAdmin?`<button class="btn btn-primary btn-sm" onclick="openFAQModal()">+ FAQ Baru</button>`:''}
+    </div>
+    ${items.length?items.map(f=>faqItem(f)).join(''):'<div class="empty-state">Tidak ada FAQ ditemukan</div>'}`;
+}
+
+// ============ ADMIN ============
+function renderAdmin(c) {
+  if (!state.isAdmin) {
+    document.getElementById('loginModal').classList.add('active');
+    c.innerHTML = `<div class="empty-state"><p>Silakan masuk ke panel admin untuk mengelola konten.</p></div>`;
+    return;
+  }
+  c.innerHTML = `
+    <div class="section-title">Panel Admin</div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'admin-articles')">Artikel</div>
+      <div class="tab" onclick="switchTab(this,'admin-faqs')">FAQ</div>
+    </div>
+    <div id="admin-articles">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span class="text-sm text-light">${state.data.articles.length} artikel</span>
+        <button class="btn btn-primary btn-sm" onclick="openArticleModal()">+ Artikel Baru</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Judul</th><th>Kategori</th><th>Author</th><th>Tanggal</th><th>Views</th><th>Aksi</th></tr></thead>
+          <tbody>${state.data.articles.map(a=>`
+            <tr>
+              <td><strong>${escapeHtml(a.title)}</strong></td>
+              <td><span class="badge badge-blue">${escapeHtml(a.category)}</span></td>
+              <td>${escapeHtml(a.author||'-')}</td>
+              <td>${a.date}</td>
+              <td>${a.views||0}</td>
+              <td><div class="flex gap-2"><button class="btn btn-sm btn-outline" onclick="editArticle(${a.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteArticle(${a.id})">Hapus</button></div></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    <div id="admin-faqs" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span class="text-sm text-light">${state.data.faqs.length} FAQ</span>
+        <button class="btn btn-primary btn-sm" onclick="openFAQModal()">+ FAQ Baru</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pertanyaan</th><th>Kategori</th><th>Aksi</th></tr></thead>
+          <tbody>${state.data.faqs.map(f=>`
+            <tr>
+              <td>${escapeHtml(f.question)}</td>
+              <td><span class="badge badge-green">${escapeHtml(f.category)}</span></td>
+              <td><div class="flex gap-2"><button class="btn btn-sm btn-outline" onclick="editFAQ(${f.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteFAQ(${f.id})">Hapus</button></div></td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function switchTab(tab, id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('admin-articles').classList.add('hidden');
+  document.getElementById('admin-faqs').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ============ SETTINGS ============
+function renderSettings(c) {
+  c.innerHTML = `
+    <div class="section-title">Pengaturan</div>
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:12px;">Data & Backup</h3>
+      <p style="font-size:14px;color:var(--text-light);margin-bottom:16px;">Export data untuk backup atau pindah ke perangkat lain. Import untuk memulihkan data.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" onclick="exportData()">📥 Export JSON</button>
+        <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📤 Import JSON</button>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
+      <h3 style="font-size:16px;margin-bottom:12px;">Password Admin</h3>
+      <div class="form-group" style="max-width:300px;">
+        <label>Password Baru</label>
+        <input type="password" id="newPass" placeholder="Masukkan password baru">
+      </div>
+      <button class="btn btn-primary" onclick="changePassword()">Ubah Password</button>
+      <hr style="border:0;border-top:1px solid var(--border);margin:24px 0;">
+      <h3 style="font-size:16px;margin-bottom:12px;color:var(--danger);">Zona Bahaya</h3>
+      <button class="btn btn-danger" onclick="resetData()">🗑 Reset ke Default</button>
+    </div>`;
+}
+
+// ============ SEARCH ============
+function handleSearch(q) {
+  state.search = q.trim().toLowerCase();
+  if (state.search) {
+    go('search');
+  } else {
+    go('home');
+  }
+}
+
+function renderSearch(c) {
+  const a = filterItems(state.data.articles, state.search, ['title','body','category']);
+  const f = filterItems(state.data.faqs, state.search, ['question','answer','category']);
+  c.innerHTML = `
+    <div class="section-title">Hasil Pencarian: "${escapeHtml(state.search)}"</div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="font-weight:600;margin-bottom:12px;">Artikel (${a.length})</div>
+      ${a.length?`<div class="article-list">${a.map(x=>articleCard(x)).join('')}</div>`:'<div class="text-sm text-light">Tidak ada artikel cocok</div>'}
+    </div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:12px;">FAQ (${f.length})</div>
+      ${f.length?f.map(x=>faqItem(x)).join(''):'<div class="text-sm text-light">Tidak ada FAQ cocok</div>'}
+    </div>`;
+}
+
+function filterItems(list, query, fields) {
+  if (!query) return list;
+  return list.filter(item => fields.some(f => (item[f]||'').toLowerCase().includes(query)));
+}
+
+// ============ MODAL ARTICLE ============
+function openArticleModal(id) {
+  const modal = document.getElementById('articleModal');
+  const title = document.getElementById('articleModalTitle');
+  if (id) {
+    const a = state.data.articles.find(x=>x.id===id);
+    document.getElementById('articleId').value = a.id;
+    document.getElementById('articleTitle').value = a.title;
+    document.getElementById('articleCategory').value = a.category;
+    document.getElementById('articleBody').value = a.body;
+    title.textContent = 'Edit Artikel';
+  } else {
+    document.getElementById('articleId').value = '';
+    document.getElementById('articleTitle').value = '';
+    document.getElementById('articleCategory').value = 'Onboarding';
+    document.getElementById('articleBody').value = '';
+    title.textContent = 'Artikel Baru';
+  }
+  modal.classList.add('active');
+}
+
+function saveArticle() {
+  const id = document.getElementById('articleId').value;
+  const title = document.getElementById('articleTitle').value.trim();
+  const category = document.getElementById('articleCategory').value;
+  const body = document.getElementById('articleBody').value.trim();
+  if (!title || !body) return toast('Judul dan konten wajib diisi','error');
+  if (id) {
+    const a = state.data.articles.find(x=>x.id==id);
+    a.title=title; a.category=category; a.body=body;
+    toast('Artikel diperbarui','success');
+  } else {
+    const newId = state.data.articles.length?Math.max(...state.data.articles.map(x=>x.id))+1:1;
+    const today = new Date().toISOString().split('T')[0];
+    state.data.articles.push({ id:newId, title, category, body, author:"Admin", date:today, views:0 });
+    toast('Artikel berhasil dibuat','success');
+  }
+  persist();
+  closeModal('articleModal');
+  render();
+}
+
+function editArticle(id) { openArticleModal(id); }
+
+function deleteArticle(id) {
+  if (!confirm('Yakin ingin menghapus artikel ini?')) return;
+  state.data.articles = state.data.articles.filter(x=>x.id!==id);
+  persist(); toast('Artikel dihapus'); render();
+}
+
+// ============ MODAL FAQ ============
+function openFAQModal(id) {
+  const modal = document.getElementById('faqModal');
+  const title = document.getElementById('faqModalTitle');
+  if (id) {
+    const f = state.data.faqs.find(x=>x.id===id);
+    document.getElementById('faqId').value = f.id;
+    document.getElementById('faqQuestion').value = f.question;
+    document.getElementById('faqCategory').value = f.category;
+    document.getElementById('faqAnswer').value = f.answer;
+    title.textContent = 'Edit FAQ';
+  } else {
+    document.getElementById('faqId').value = '';
+    document.getElementById('faqQuestion').value = '';
+    document.getElementById('faqCategory').value = 'Umum';
+    document.getElementById('faqAnswer').value = '';
+    title.textContent = 'FAQ Baru';
+  }
+  modal.classList.add('active');
+}
+
+function saveFAQ() {
+  const id = document.getElementById('faqId').value;
+  const question = document.getElementById('faqQuestion').value.trim();
+  const category = document.getElementById('faqCategory').value;
+  const answer = document.getElementById('faqAnswer').value.trim();
+  if (!question || !answer) return toast('Pertanyaan dan jawaban wajib diisi','error');
+  if (id) {
+    const f = state.data.faqs.find(x=>x.id==id);
+    f.question=question; f.category=category; f.answer=answer;
+    toast('FAQ diperbarui','success');
+  } else {
+    const newId = state.data.faqs.length?Math.max(...state.data.faqs.map(x=>x.id))+1:1;
+    state.data.faqs.push({ id:newId, question, category, answer });
+    toast('FAQ berhasil dibuat','success');
+  }
+  persist();
+  closeModal('faqModal');
+  render();
+}
+
+function editFAQ(id) { openFAQModal(id); }
+
+function deleteFAQ(id) {
+  if (!confirm('Yakin ingin menghapus FAQ ini?')) return;
+  state.data.faqs = state.data.faqs.filter(x=>x.id!==id);
+  persist(); toast('FAQ dihapus'); render();
+}
+
+// ============ LOGIN ============
+function doLogin() {
+  const pass = document.getElementById('adminPassword').value;
+  if (pass === state.adminPass) {
+    state.isAdmin = true;
+    document.getElementById('loginModal').classList.remove('active');
+    document.getElementById('adminPassword').value = '';
+    toast('Berhasil masuk sebagai Admin','success');
+    render();
+  } else {
+    toast('Password salah','error');
+  }
+}
+
+// ============ SETTINGS ACTIONS ============
+function changePassword() {
+  const p = document.getElementById('newPass').value.trim();
+  if (!p) return toast('Password tidak boleh kosong','error');
+  state.adminPass = p;
+  localStorage.setItem('kbase_pass', p);
+  document.getElementById('newPass').value = '';
+  toast('Password berhasil diubah','success');
+}
+
+function resetData() {
+  if (!confirm('Semua data saat ini akan dihapus dan diganti dengan data default. Lanjutkan?')) return;
+  state.data = JSON.parse(JSON.stringify(defaultData));
+  persist();
+  toast('Data direset ke default','warning');
+  render();
+}
+
+// ============ EXPORT / IMPORT ============
+function exportData() {
+  const blob = new Blob([JSON.stringify(state.data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kbase-backup-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Data berhasil di-export','success');
+}
+
+function importData(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.articles || !data.faqs) throw new Error('Format tidak valid');
+      state.data = data;
+      if (data.categories) state.data.categories = data.categories;
+      persist(); toast('Data berhasil di-import','success'); render();
+    } catch(err) {
+      toast('Gagal import: format JSON tidak valid','error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ============ UTILS ============
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function escapeHtml(str) { const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+function stripHtml(html) { const d=document.createElement('div'); d.innerHTML=html; return d.textContent||d.innerText||''; }
+function toast(msg, type='success') {
+  const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type;
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ============ START ============
+init();
+</script>
+</body>
+</html>
